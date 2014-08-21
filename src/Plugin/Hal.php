@@ -504,6 +504,7 @@ class Hal extends AbstractHelper implements
             $entity = array();
         }
 
+        
         foreach ($entity as $key => $value) {
             if (is_object($value) && $metadataMap->has($value)) {
                 $value = $this->createEntityFromMetadata($value, $metadataMap->get($value), $this->getRenderEmbeddedEntities());
@@ -717,19 +718,20 @@ class Hal extends AbstractHelper implements
         }
         $id = ($entityIdentifierName) ? $data[$entityIdentifierName]: null;
 
+        $entity = $object;
         if (!$renderEmbeddedEntities) {
-            $data = array();
+            $entity = array();
         }
 
-        $entity   = new Entity($data, $id);
-        $links    = $entity->getLinks();
+        $halEntity   = new Entity($entity, $id);
+        $links    = $halEntity->getLinks();
         $this->marshalMetadataLinks($metadata, $links);
         if (!$links->has('self')) {
             $link = $this->marshalSelfLinkFromMetadata($metadata, $object, $id, $metadata->getRouteIdentifierName());
             $links->add($link);
         }
 
-        return $entity;
+        return $halEntity;
     }
 
     /**
