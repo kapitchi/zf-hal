@@ -1146,9 +1146,9 @@ class Hal extends AbstractHelper implements
      */
     protected function convertEntityToArray($entity)
     {
-        if (isset($this->serializedEntities[$entity])) {
-            return $this->serializedEntities[$entity];
-        }
+//        if (isset($this->serializedEntities[$entity])) {
+//            return $this->serializedEntities[$entity];
+//        }
 
         $array    = false;
         $hydrator = $this->getHydratorForEntity($entity);
