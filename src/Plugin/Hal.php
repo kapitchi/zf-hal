@@ -489,9 +489,9 @@ class Hal extends AbstractHelper implements
      * @param  bool $renderEntity
      * @return array
      */
-    public function renderEntity(Entity $halEntity, $renderEntity = true)
+    public function renderEntity(Entity $halEntity, $renderEntity = true, $embeddingHalEntity = null)
     {
-        $this->getEventManager()->trigger(__FUNCTION__, $this, array('entity' => $halEntity));
+        $this->getEventManager()->trigger(__FUNCTION__, $this, array('entity' => $halEntity, 'embeddingHalEntity' => $embeddingHalEntity));
         $entity        = $halEntity->entity;
         $entityLinks   = $halEntity->getLinks();
         $metadataMap   = $this->getMetadataMap();
@@ -511,10 +511,10 @@ class Hal extends AbstractHelper implements
             }
 
             if ($value instanceof Entity) {
-                $this->extractEmbeddedEntity($entity, $key, $value);
+                $this->extractEmbeddedEntity($entity, $key, $value, $halEntity);
             }
             if ($value instanceof Collection) {
-                $this->extractEmbeddedCollection($entity, $key, $value);
+                $this->extractEmbeddedCollection($entity, $key, $value, $halEntity);
             }
             if ($value instanceof Link) {
                 $entityLinks->add($value);
@@ -970,9 +970,9 @@ class Hal extends AbstractHelper implements
      * @param  string $key
      * @param  Entity $entity
      */
-    protected function extractEmbeddedEntity(array &$parent, $key, Entity $entity)
+    protected function extractEmbeddedEntity(array &$parent, $key, Entity $entity, $embeddingHalEntity = null)
     {
-        $rendered = $this->renderEntity($entity);
+        $rendered = $this->renderEntity($entity, true, $embeddingHalEntity);
         if (!isset($parent['_embedded'])) {
             $parent['_embedded'] = array();
         }
@@ -991,9 +991,9 @@ class Hal extends AbstractHelper implements
      * @param  string $key
      * @param  Collection $collection
      */
-    protected function extractEmbeddedCollection(array &$parent, $key, Collection $collection)
+    protected function extractEmbeddedCollection(array &$parent, $key, Collection $collection, $embeddingHalEntity = null)
     {
-        $rendered = $this->extractCollection($collection);
+        $rendered = $this->extractCollection($collection, $embeddingHalEntity);
         if (!isset($parent['_embedded'])) {
             $parent['_embedded'] = array();
         }
@@ -1009,7 +1009,7 @@ class Hal extends AbstractHelper implements
      * @param  Collection $halCollection
      * @return array
      */
-    protected function extractCollection(Collection $halCollection)
+    protected function extractCollection(Collection $halCollection, $embeddingHalEntity = null)
     {
         $collection           = array();
         $events               = $this->getEventManager();
@@ -1021,6 +1021,7 @@ class Hal extends AbstractHelper implements
 
         foreach ($halCollection->getCollection() as $entity) {
             $eventParams = new ArrayObject(array(
+                'embeddingHalEntity'   => $embeddingHalEntity,
                 'collection'   => $halCollection,
                 'entity'       => $entity,
                 'resource'     => $entity,
@@ -1038,7 +1039,7 @@ class Hal extends AbstractHelper implements
             }
 
             if ($entity instanceof Entity) {
-                $collection[] = $this->renderEntity($entity, $this->getRenderCollections());
+                $collection[] = $this->renderEntity($entity, $this->getRenderCollections(), $embeddingHalEntity);
                 continue;
             }
 
